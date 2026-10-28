@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module';
 import { AuditModule } from './audit/audit.module';
 import { LeadsModule } from './leads/leads.module';
 import { OpportunitiesModule } from './opportunities/opportunities.module';
+import { VisitsModule } from './visits/visits.module';
 
 @Module({
   imports: [
@@ -13,7 +14,7 @@ import { OpportunitiesModule } from './opportunities/opportunities.module';
     UsersModule, 
     AuditModule, 
     LeadsModule, 
-    OpportunitiesModule
+    OpportunitiesModule, VisitsModule
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -168,8 +168,8 @@ model Visit {
   leadId       String
   broker       User        @relation(fields: [brokerId], references: [id])
   brokerId     String
-  oportunity   Opportunity @relation(fields: [oportunityId], references: [id])
-  oportunityId String
+  opportunity   Opportunity @relation(fields: [opportunityId], references: [id])
+  opportunityId String
   scheduledAt  DateTime
   durationMin  Int
   status       VisitStatus
