@@ -1,0 +1,205 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  BROKER
+  ASSISTANT
+}
+
+enum LeadSource {
+  SITE
+  REFERRAL
+  SOCIAL_MEDIA
+  WALK_IN
+  OTHER
+}
+
+enum LeadStatus {
+  NEW
+  IN_CONTACT
+  VISIT
+  PROPOSAL
+  WON
+  LOST
+}
+
+enum AuditLogAction {
+  INSERT
+  UPDATE
+  DELETE
+}
+
+enum InteractionType {
+  CALL
+  WHATSAPP
+  EMAIL
+  MEETING
+  NOTE
+  OTHER
+}
+
+enum OpportunityStage {
+  PROSPECT
+  VISIT
+  PROPOSAL
+  NEGOTIATION
+  CLOSED_WON
+  CLOSED_LOST
+}
+
+enum VisitStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELED
+  NO_SHOW
+}
+
+enum PaymentType {
+  CASH
+  FINANCING
+  MIXED
+}
+
+enum ProposalStatus {
+  DRAFT
+  SENT
+  UNDER_REVIEW
+  ACCEPTED
+  REJECTED
+  COUNTERED
+}
+
+enum CommissionStatus {
+  PENDING
+  PAID
+}
+
+model User {
+  id            String            @id @default(uuid())
+  name          String
+  email         String            @unique
+  passwordHash  String
+  role          UserRole
+  creci         String?
+  active        Boolean           @default(true)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  leads         Lead[]
+  interactions  LeadInteraction[]
+  opportunities Opportunity[]
+  visits        Visit[]
+  proposals     Proposal[]
+  commissions   Commission[]
+  auditLogs     AuditLog[]
+}
+
+model AuditLog {
+  id        String         @id @default(uuid())
+  user      User           @relation(fields: [userId], references: [id])
+  userId    String
+  action    AuditLogAction
+  entity    String
+  entityId  String
+  oldValue  Json?
+  newValue  Json?
+  createdAt DateTime       @default(now())
+}
+
+model Lead {
+  id               String            @id @default(uuid())
+  name             String
+  email            String
+  phone            String?
+  source           LeadSource
+  status           LeadStatus        @default(NEW)
+  assignedBroker   User?             @relation(fields: [assignedBrokerId], references: [id])
+  assignedBrokerId String?
+  notes            String?
+  anonymizedAt     DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  interactions     LeadInteraction[]
+  opportunities    Opportunity[]
+  visits           Visit[]
+}
+
+model LeadInteraction {
+  id              String          @id @default(uuid())
+  lead            Lead            @relation(fields: [leadId], references: [id])
+  leadId          String
+  user            User            @relation(fields: [userId], references: [id])
+  userId          String
+  interactionType InteractionType
+  content         String?
+  createdAt       DateTime        @default(now())
+}
+
+model Opportunity {
+  id            String           @id @default(uuid())
+  lead          Lead             @relation(fields: [leadId], references: [id])
+  leadId        String
+  broker        User             @relation(fields: [brokerId], references: [id])
+  brokerId      String
+  stage         OpportunityStage
+  expectedValue Decimal
+  lossReason    String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  visits        Visit[]
+  proposals     Proposal[]
+}
+
+model Visit {
+  id           String      @id @default(uuid())
+  lead         Lead        @relation(fields: [leadId], references: [id])
+  leadId       String
+  broker       User        @relation(fields: [brokerId], references: [id])
+  brokerId     String
+  oportunity   Opportunity @relation(fields: [oportunityId], references: [id])
+  oportunityId String
+  scheduledAt  DateTime
+  durationMin  Int
+  status       VisitStatus
+  feedback     String?
+}
+
+model Proposal {
+  id                     String         @id @default(uuid())
+  opportunity            Opportunity    @relation(fields: [opportunityId], references: [id])
+  opportunityId          String
+  value                  Decimal
+  paymentType            PaymentType
+  conditions             String?
+  status                 ProposalStatus
+  discountApprovedByUser User?          @relation(fields: [discountApprovedBy], references: [id])
+  discountApprovedBy     String?
+  discountPercentage     Decimal?
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  comissions             Commission[]
+}
+
+model Commission {
+  id         String           @id @default(uuid())
+  proposal   Proposal         @relation(fields: [proposalId], references: [id])
+  proposalId String
+  broker     User             @relation(fields: [brokerId], references: [id])
+  brokerId   String
+  amount     Decimal
+  paidAt     DateTime
+  status     CommissionStatus
+  createdAt  DateTime         @default(now())
+}
