@@ -1,9 +1,16 @@
 import { UserRole } from '../../generated/prisma/client';
+import { IsString, IsEnum, IsOptional } from 'class-validator';
 
 export class CreateUserDto {
-    readonly name: string;
-    readonly email: string;
-    readonly password: string;
-    readonly role: UserRole;
-    readonly creci: string | null;
+    @IsString()
+    name: string;
+    @IsString()
+    email: string;
+    @IsString()
+    password: string;
+    @IsEnum(UserRole)
+    role: UserRole;
+    @IsOptional()
+    @IsString()
+    creci?: string;
 }
